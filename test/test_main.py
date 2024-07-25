@@ -55,11 +55,39 @@ def test_users_all(mocked_database: Mock):
 def mocked_database_fix(mocker):
     return mocker.patch('main.Database')
 
+@pytest.fixture
+def mocked_database_fix2(mocker):
+    with patch('main.Database') as mocked_database:
+        database_instance = Mock()
+        database_instance.get_all_users.return_value = [test_user1, test_user2]
+        mocked_database.return_value = database_instance
+        yield mocked_database
 
-def test_users_all3(mocked_database_fix: Mock):
-    database_instance = Mock()
-    database_instance.get_all_users.return_value = [test_user1, test_user2]
-    mocked_database_fix.return_value = database_instance
+def test_user_one(mocked_database_fix2):
+    response = client.get("/john.smith@mail.com")
+
+
+
+
+def test_users_all4(mocked_database_fix2: Mock):
+    response = client.get("/users")
+    expected_result = [
+        {
+            "first_name": "John",
+            "last_name": "Smith",
+            "email": "john.smith@mail.com",
+        },
+        {
+            "first_name": "Michael",
+            "last_name": "Turner",
+            "email": "michael.turner@mail.com",
+        }
+    ]
+    assert response.status_code == 200
+    assert response.json() == expected_result
+
+
+def test_users_all3(mocked_database_fix2: Mock):
     response = client.get("/users")
     expected_result = [
         {
@@ -95,3 +123,5 @@ def test_users_all2(mocked_database: Mock):
     ]
     assert response.status_code == 200
     assert response.json() == expected_result
+
+
